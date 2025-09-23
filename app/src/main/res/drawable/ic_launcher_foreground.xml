@@ -1,0 +1,48 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Newspaper background - centered and scaled to fit safe zone -->
+    <path
+        android:fillColor="#8B4513"
+        android:pathData="M18,18C18,17.45 18.45,17 19,17H89C89.55,17 90,17.45 90,18V90C90,90.55 89.55,91 89,91H19C18.45,91 18,90.55 18,90V18Z" />
+    
+    <!-- Newspaper fold/shadow -->
+    <path
+        android:fillColor="#654321"
+        android:pathData="M75,19H90V91H75V19Z" />
+    
+    <!-- NEWS headline -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M25,30H75V38H25V30Z" />
+    
+    <!-- Left column image placeholder -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M25,45H50V65H25V45Z" />
+    
+    <!-- Left column caption lines -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M25,70H50V75H25V70Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M25,78H40V83H25V78Z" />
+    
+    <!-- Right column text lines -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M55,45H75V50H55V45Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M55,55H75V60H55V55Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M55,65H75V70H55V65Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M55,75H75V80H55V75Z" />
+</vector>
