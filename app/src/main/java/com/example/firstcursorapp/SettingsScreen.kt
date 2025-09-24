@@ -66,6 +66,8 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -346,7 +348,7 @@ fun SettingsScreen(
 private fun ModernBarChart(
     data: List<Pair<String, Int>>,
     modifier: Modifier = Modifier,
-    chartHeight: Int = 180
+    chartHeight: Int = 200
 ) {
     if (data.isEmpty()) return
     val maxValue = (data.maxOf { it.second }.coerceAtLeast(1))
@@ -354,29 +356,39 @@ private fun ModernBarChart(
     val primaryColor = MaterialTheme.colorScheme.primary
     val primaryColorTop = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
     val onPrimaryOutline = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.06f)
+    
     Column(modifier = modifier) {
-        // Bars with labels
+        // Vertical bars with labels at bottom
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(chartHeight.dp)
+                .height(chartHeight.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            val barCount = data.size
-            val barSpacingFraction = 0.5f
             data.forEachIndexed { index, (label, value) ->
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .padding(horizontal = 4.dp)
+                        .padding(horizontal = 2.dp)
                 ) {
+                    // Value label at top of bar
                     val targetFraction = value.toFloat() / maxValue.toFloat()
                     val animatedFraction by animateFloatAsState(
                         targetValue = targetFraction,
-                        animationSpec = tween(durationMillis = 800, delayMillis = index * 80),
+                        animationSpec = tween(durationMillis = 800, delayMillis = index * 100),
                         label = "barAnim"
                     )
+                    
+                    Text(
+                        text = value.toString(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                    
+                    // Bar container
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -384,10 +396,10 @@ private fun ModernBarChart(
                             .background(Color.Transparent)
                     ) {
                         Canvas(modifier = Modifier.fillMaxSize()) {
-                            val barWidth = size.width * (1f - (barSpacingFraction / 4f))
+                            val barWidth = size.width * 0.6f
                             val barHeight = size.height * animatedFraction
                             val top = size.height - barHeight
-                            val corner = androidx.compose.ui.geometry.CornerRadius(x = 24f, y = 24f)
+                            val corner = androidx.compose.ui.geometry.CornerRadius(x = 12f, y = 12f)
                             val brush = Brush.verticalGradient(
                                 colors = listOf(
                                     primaryColorTop,
@@ -414,25 +426,22 @@ private fun ModernBarChart(
                                 ),
                                 size = androidx.compose.ui.geometry.Size(width = barWidth, height = barHeight),
                                 cornerRadius = corner,
-                                style = Stroke(width = 2f)
+                                style = Stroke(width = 1f)
                             )
                         }
-                        // value label
-                        Text(
-                            text = value.toString(),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .padding(top = 4.dp)
-                        )
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    // Action name label at bottom
                     Text(
                         text = label,
-                        maxLines = 1,
+                        maxLines = 2,
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .height(32.dp),
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }

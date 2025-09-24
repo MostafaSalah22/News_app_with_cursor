@@ -1,11 +1,13 @@
 package com.example.firstcursorapp.feature.analytics
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.firstcursorapp.data.repository.AnalyticsRepository
+import com.example.firstcursorapp.feature.auth.AuthViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 data class AnalyticsState(
@@ -20,35 +22,49 @@ sealed class AnalyticsIntent {
     object LoadAnalytics : AnalyticsIntent()
 }
 
-class AnalyticsViewModel(application: Application) : AndroidViewModel(application) {
+class AnalyticsViewModel(
+    private val analyticsRepository: AnalyticsRepository,
+    private val authViewModel: AuthViewModel
+) : ViewModel() {
     
     private val _state = MutableStateFlow(AnalyticsState())
     val state: StateFlow<AnalyticsState> = _state.asStateFlow()
     
-    // In-memory storage for analytics (in a real app, you'd use a database)
-    private val analyticsEvents = mutableMapOf<String, Int>()
-    
     init {
-        loadAnalytics()
+        // Load analytics when user changes
+        viewModelScope.launch {
+            authViewModel.state.collect { authState ->
+                authState.currentUser?.uid?.let { userId ->
+                    loadAnalytics(userId)
+                } ?: run {
+                    // Clear analytics when user logs out
+                    _state.value = _state.value.copy(events = emptyMap())
+                }
+            }
+        }
     }
     
     fun process(intent: AnalyticsIntent) {
         when (intent) {
             is AnalyticsIntent.Log -> logAction(intent.action)
             AnalyticsIntent.Clear -> clearAnalytics()
-            AnalyticsIntent.LoadAnalytics -> loadAnalytics()
+            AnalyticsIntent.LoadAnalytics -> {
+                authViewModel.state.value.currentUser?.uid?.let { userId ->
+                    loadAnalytics(userId)
+                }
+            }
         }
     }
     
     private fun logAction(action: String) {
         viewModelScope.launch {
             try {
-                val currentCount = analyticsEvents[action] ?: 0
-                analyticsEvents[action] = currentCount + 1
-                
-                _state.value = _state.value.copy(
-                    events = analyticsEvents.toMap()
-                )
+                val userId = authViewModel.state.value.currentUser?.uid
+                if (userId != null) {
+                    analyticsRepository.logAction(userId, action)
+                    // Reload analytics to update the UI
+                    loadAnalytics(userId)
+                }
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     errorMessage = "Failed to log action: ${e.message}"
@@ -60,10 +76,13 @@ class AnalyticsViewModel(application: Application) : AndroidViewModel(applicatio
     private fun clearAnalytics() {
         viewModelScope.launch {
             try {
-                analyticsEvents.clear()
-                _state.value = _state.value.copy(
-                    events = emptyMap()
-                )
+                val userId = authViewModel.state.value.currentUser?.uid
+                if (userId != null) {
+                    analyticsRepository.clearAnalyticsForUser(userId)
+                    _state.value = _state.value.copy(
+                        events = emptyMap()
+                    )
+                }
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     errorMessage = "Failed to clear analytics: ${e.message}"
@@ -72,7 +91,7 @@ class AnalyticsViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
     
-    private fun loadAnalytics() {
+    private fun loadAnalytics(userId: String) {
         viewModelScope.launch {
             try {
                 _state.value = _state.value.copy(
@@ -80,10 +99,9 @@ class AnalyticsViewModel(application: Application) : AndroidViewModel(applicatio
                     errorMessage = null
                 )
                 
-                // In a real app, you'd load from a database
-                // For now, we'll just use the in-memory data
+                val analyticsSummary = analyticsRepository.getAnalyticsSummaryByUser(userId)
                 _state.value = _state.value.copy(
-                    events = analyticsEvents.toMap(),
+                    events = analyticsSummary,
                     isLoading = false
                 )
             } catch (e: Exception) {

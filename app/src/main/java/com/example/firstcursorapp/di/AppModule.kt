@@ -7,6 +7,7 @@ import com.example.firstcursorapp.data.local.NewsDatabase
 import com.example.firstcursorapp.data.remote.NetworkModule
 import com.example.firstcursorapp.data.repository.NewsRepository
 import com.example.firstcursorapp.data.repository.FavoritesRepository
+import com.example.firstcursorapp.data.repository.AnalyticsRepository
 import com.example.firstcursorapp.utils.NetworkMonitor
 import com.example.firstcursorapp.feature.analytics.AnalyticsViewModel
 import com.example.firstcursorapp.feature.auth.AuthViewModel
@@ -25,6 +26,8 @@ import org.koin.dsl.module
 val appModule = module {
     // Database
     single { NewsDatabase.getDatabase(androidContext()) }
+    single { get<NewsDatabase>().userProfileDao() }
+    single { get<NewsDatabase>().analyticsDao() }
     
     // Firebase
     single { FirebaseAuth.getInstance() }
@@ -32,6 +35,7 @@ val appModule = module {
     single { AuthService(get()) }
     single { NotificationService(androidContext()) }
     single { FavoritesRepository(get(), get()) }
+    single { AnalyticsRepository(get()) }
     
     // Network
     single { NetworkModule.provideNewsApiService() }
@@ -52,7 +56,7 @@ val appModule = module {
     viewModel { FavoritesViewModel(get()) }
     viewModel { LoginViewModel() }
     viewModel { SettingsViewModel(androidContext() as android.app.Application) }
-    viewModel { AnalyticsViewModel(androidContext() as android.app.Application) }
+    viewModel { AnalyticsViewModel(get(), get()) }
     viewModel { AuthViewModel(get(), get()) }
     // Offline feature removed
 }

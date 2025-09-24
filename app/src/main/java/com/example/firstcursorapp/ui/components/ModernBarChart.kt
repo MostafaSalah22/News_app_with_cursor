@@ -43,31 +43,20 @@ fun ModernBarChart(
     Column(
         modifier = modifier.fillMaxWidth()
     ) {
-        // Chart title
-        Text(
-            text = "Top Actions",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-        
-        // Simple bar chart using Boxes
-        Column(
+        // Vertical bar chart
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                .height(200.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            sortedData.forEach { (action, count) ->
-                SimpleBarItem(
+            sortedData.forEachIndexed { index, (action, count) ->
+                VerticalBarItem(
                     action = action,
                     count = count,
                     maxCount = maxValue,
-                    animationDuration = animationDuration
+                    animationDuration = animationDuration,
+                    delay = index * 100
                 )
             }
         }
@@ -75,64 +64,54 @@ fun ModernBarChart(
 }
 
 @Composable
-private fun SimpleBarItem(
+private fun VerticalBarItem(
     action: String,
     count: Int,
     maxCount: Int,
-    animationDuration: Int
+    animationDuration: Int,
+    delay: Int = 0
 ) {
-    val animatedWidth by animateFloatAsState(
+    val animatedHeight by animateFloatAsState(
         targetValue = if (maxCount > 0) count.toFloat() / maxCount.toFloat() else 0f,
-        animationSpec = tween(durationMillis = animationDuration),
-        label = "barWidth"
+        animationSpec = tween(durationMillis = animationDuration, delayMillis = delay),
+        label = "barHeight"
     )
     
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+    Column(
+        modifier = Modifier
+            .fillMaxHeight(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Bottom
     ) {
-        // Action label
-        Text(
-            text = action.replace("_", " ").replaceFirstChar { it.uppercase() },
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f)
-        )
-        
-        Spacer(modifier = Modifier.width(8.dp))
-        
-        // Bar
-        Box(
-            modifier = Modifier
-                .weight(2f)
-                .height(24.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                    shape = RoundedCornerShape(12.dp)
-                )
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(animatedWidth)
-                    .background(
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = RoundedCornerShape(12.dp)
-                    )
-            )
-        }
-        
-        Spacer(modifier = Modifier.width(8.dp))
-        
-        // Count
+        // Value label at top
         Text(
             text = count.toString(),
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.width(30.dp),
-            textAlign = TextAlign.End
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
+        
+        // Vertical bar
+        Box(
+            modifier = Modifier
+                .width(40.dp)
+                .height((120 * animatedHeight).dp)
+                .background(
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        )
+    
+        // Action name at bottom
+        Text(
+            text = action.replace("_", " ").replaceFirstChar { it.uppercase() },
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .height(32.dp),
+            maxLines = 2
         )
     }
 }

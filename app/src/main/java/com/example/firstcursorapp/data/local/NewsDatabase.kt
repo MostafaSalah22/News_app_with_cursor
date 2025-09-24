@@ -7,18 +7,22 @@ import androidx.room.TypeConverters
 import android.content.Context
 import com.example.firstcursorapp.data.local.converters.Converters
 import com.example.firstcursorapp.data.local.dao.UserProfileDao
+import com.example.firstcursorapp.data.local.dao.AnalyticsDao
 import com.example.firstcursorapp.data.local.entities.UserProfile
+import com.example.firstcursorapp.data.local.entities.AnalyticsEvent
 
 @Database(
     entities = [
-        UserProfile::class
+        UserProfile::class,
+        AnalyticsEvent::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class NewsDatabase : RoomDatabase() {
     abstract fun userProfileDao(): UserProfileDao
+    abstract fun analyticsDao(): AnalyticsDao
 
     companion object {
         @Volatile
